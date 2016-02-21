@@ -1,0 +1,24 @@
+{
+  "links": {
+    "self": "http://localhost:80/sessions/session123"
+  },
+  "data": {
+    "id": "session123",
+    "type": "session",
+    "attributes": {},
+    "relationships": {
+      "account": {
+        "links": {
+          "self": "http://localhost:80/accounts/account456"
+        },
+        "data": {
+          "id": "account456",
+          "type": "account",
+          "attributes": {
+            "username": "pat@example.com"
+          }
+        }
+      }
+    }
+  }
+}
