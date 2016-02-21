@@ -15,6 +15,8 @@ var accountsFindAll = require('./lib/accounts/find-all')
 var accountsUpdate = require('./lib/accounts/update')
 var accountsRemove = require('./lib/accounts/remove')
 
+var sessionsAdd = require('./lib/sessions/add')
+
 var events = require('../lib/events')
 
 function AccountAdmin (options) {
@@ -63,6 +65,10 @@ function AccountAdmin (options) {
       on: events.on.bind(this, {emitter: accountsEmitter}),
       one: events.one.bind(this, {emitter: accountsEmitter}),
       off: events.off.bind(this, {emitter: accountsEmitter})
+    },
+
+    sessions: {
+      add: sessionsAdd.bind(this, state)
     },
 
     on: events.on.bind(this, state),
