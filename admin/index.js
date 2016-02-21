@@ -40,7 +40,7 @@ function AccountAdmin (options) {
     validate: options.validate || function () {}
   }
 
-  return {
+  var admin = {
     get username () {
       return getUsername(state)
     },
@@ -75,4 +75,10 @@ function AccountAdmin (options) {
     one: events.one.bind(this, state),
     off: events.off.bind(this, state)
   }
+
+  admin.sessions = {
+    add: sessionsAdd.bind(admin, state)
+  }
+
+  return admin
 }
