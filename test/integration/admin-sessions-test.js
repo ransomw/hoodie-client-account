@@ -141,7 +141,7 @@ var makeAddOkTest = function (admin) {
   }
 }
 
-var addTest = function (admin) {
+var makeAddTest = function (admin) {
   return function (t) {
     t.ok(admin.sessions.add, 'sessions.add exists')
     t.is(typeof admin.sessions.add, 'function',
@@ -175,7 +175,7 @@ test('admin sessions', function (t) {
   t.ok(sessions, 'admin has sessions object')
 
   if (sessions) {
-    t.test('add', addTest(admin))
+    t.test('add', makeAddTest(admin))
   }
   t.end()
 })
