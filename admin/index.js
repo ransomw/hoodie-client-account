@@ -40,7 +40,7 @@ function AccountAdmin (options) {
     validate: options.validate || function () {}
   }
 
-  var admin = {
+  return {
     get username () {
       return getUsername(state)
     },
@@ -67,15 +67,12 @@ function AccountAdmin (options) {
       off: events.off.bind(this, {emitter: accountsEmitter})
     },
 
+    sessions: {
+      add: sessionsAdd.bind(this, state)
+    },
+
     on: events.on.bind(this, state),
     one: events.one.bind(this, state),
     off: events.off.bind(this, state)
   }
-
-  // sessions.add can use accounts.find to lookup user id by username
-  admin.sessions = {
-    add: sessionsAdd.bind(admin, state)
-  }
-
-  return admin
 }

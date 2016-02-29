@@ -1,8 +1,7 @@
 module.exports = add
 
-function add (state, options) {
-  // iss19 wip
-  // var admin = this
+// var accountsFind = require('../accounts/find')
 
+function add (state, options) {
   return Promise.resolve({ account: {} })
 }
