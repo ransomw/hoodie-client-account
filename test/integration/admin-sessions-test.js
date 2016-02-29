@@ -10,15 +10,13 @@ var accountsUnauthenticatedResponse = require('../fixtures/accounts-401')
 // 1. an id matching one of the user accounts in the accounts fixture
 // 2. a session id distinct from the session ids in all other fixtures
 var sessionsResponse = require('../fixtures/sessions')
-var sessionsUnauthenticatedResponse = require('../fixtures/sessions-401')
+// var sessionsUnauthenticatedResponse = require('../fixtures/sessions-401')
 
 var makeAddUnauthenticatedTest = function (admin) {
   return function (t) {
     nock('http://localhost:3000')
       .get('/accounts')
       .reply(401, accountsUnauthenticatedResponse)
-      .put(/^\/accounts\/(id)\/sessions$/)
-      .reply(401, sessionsUnauthenticatedResponse)
 
     admin.sessions.add({
       username: 'pat'
@@ -26,27 +24,38 @@ var makeAddUnauthenticatedTest = function (admin) {
       t.notOk(res, 'expected error on unauthenticated admin')
     }, function (err) {
       t.ok(err, 'got error with unauthenticaed admin session')
+      // ??? README/api spec mismatch
       t.equal(err.name, 'UnauthenticatedError',
               'correct error type')
     }).then(function () {
       t.end()
-    })
+    }).catch(t.error)
   }
 }
 
 var makeAddNoUsernameTest = function (admin) {
   return function (t) {
-    admin.sessions.add()
-      .then(function (res) {
-        t.notOk(res, 'expected error on missing username')
-      }, function (err) {
-        t.ok(err, 'error on missing username')
-        t.equal(err.name, 'Error', 'generic error')
-        t.equal(err.message, 'options.username is required',
-                'correct error message')
-      }).then(function () {
-        t.end()
-      })
+    nock('http://localhost:3000')
+      .get('/accounts')
+      .reply(200, accountsResponse)
+
+    admin.sessions.add().then(function (res) {
+      t.notOk(res, 'expected error on missing username')
+    }, function (err) {
+      // this block isn't hit (?)
+      t.ok(err, 'error on missing username')
+      t.equal(err.name, 'Error', 'generic error')
+      t.equal(err.message, 'options.username is required',
+              'correct error message')
+    }).then(function () {
+      t.end()
+    }).catch(function (err) {
+      t.ok(err, 'error on missing username')
+      t.equal(err.name, 'Error', 'generic error')
+      t.equal(err.message, 'options.username is required',
+              'correct error message')
+      t.end()
+    })
   }
 }
 
@@ -70,7 +79,7 @@ var makeAddNotFoundTest = function (admin) {
       t.notOk(res, 'expected error on non-existant username')
     }, function (err) {
       t.ok(err, 'error on non-existant username')
-      t.equal(err.name, 'ConnectionError',
+      t.equal(err.name, 'NotFoundError',
               'correct error type on non-existant username')
     }).then(function () {
       t.end()
@@ -86,6 +95,7 @@ var makeAddConnectionErrorTest = function (admin) {
       t.notOk(res, 'expected error on no connection')
     }, function (err) {
       t.ok(err, 'error on no connection')
+      // internals (?)
       t.equal(err.name, 'ConnectionError',
               'correct error type on no connection')
     }).then(function () {
@@ -99,7 +109,9 @@ var makeAddOkTest = function (admin) {
     nock('http://localhost:3000')
       .get('/accounts')
       .reply(200, accountsResponse)
-      .put(/^\/accounts\/(id)\/sessions$/)
+    // ??? nock version bump
+      // .post(/^\/accounts\/(.*)\/sessions$/)
+      .post('/accounts/abc4567/sessions')
       .reply(201, function (url, requestBody) {
         return sessionsResponse
       })
@@ -107,6 +119,8 @@ var makeAddOkTest = function (admin) {
     admin.sessions.add({
       username: 'pat'
     }).then(function (sessionProperties) {
+      t.ok(sessionProperties, 'got sessionProperties response')
+      t.ok(sessionProperties.account, 'sessionProperties has account')
       t.deepEqual({
         id: sessionProperties.id,
         account: {
@@ -127,19 +141,12 @@ var makeAddOkTest = function (admin) {
   }
 }
 
-// test sessions.add()
-var makeAddTest = function (admin) {
+var addTest = function (admin) {
   return function (t) {
     t.ok(admin.sessions.add, 'sessions.add exists')
     t.is(typeof admin.sessions.add, 'function',
          'sessions.add is a function')
     t.test('admin unauthenticated', makeAddUnauthenticatedTest(admin))
-    store.setObject('account_admin', {
-      username: 'patmin',
-      session: {
-        id: 'abc4567'
-      }
-    })
     t.test('no username', makeAddNoUsernameTest(admin))
     t.test('unconfirmed', makeAddUnconfirmedTest(admin))
     t.test('account not found', makeAddNotFoundTest(admin))
@@ -150,14 +157,25 @@ var makeAddTest = function (admin) {
 }
 
 test('admin sessions', function (t) {
+  // AccountAdmin sets state.account according to localStorage
+  // state updates on signin&out (?)
+  store.setObject('account_admin', {
+    username: 'patmin',
+    session: {
+      id: 'abc4567'
+    }
+  })
+
   var admin = new AccountAdmin({
     url: 'http://localhost:3000'
   })
 
   var sessions = admin.sessions
+
   t.ok(sessions, 'admin has sessions object')
+
   if (sessions) {
-    t.test('add', makeAddTest(admin))
+    t.test('add', addTest(admin))
   }
   t.end()
 })
