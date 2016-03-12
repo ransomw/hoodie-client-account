@@ -24,8 +24,7 @@ var makeAddUnauthenticatedTest = function (admin) {
       t.notOk(res, 'expected error on unauthenticated admin')
     }, function (err) {
       t.ok(err, 'got error with unauthenticaed admin session')
-      // ??? README/api spec mismatch
-      t.equal(err.name, 'UnauthenticatedError',
+      t.equal(err.name, 'UnauthorizedError',
               'correct error type')
     }).then(function () {
       t.end()
@@ -59,9 +58,9 @@ var makeAddNoUsernameTest = function (admin) {
   }
 }
 
+// currently out of scope
 var makeAddUnconfirmedTest = function (admin) {
   return function (t) {
-    // ??? api spec
     t.notOk(true, 'unimplemented')
     t.end()
   }
@@ -106,14 +105,16 @@ var makeAddConnectionErrorTest = function (admin) {
 
 var makeAddOkTest = function (admin) {
   return function (t) {
+    var re_url = /^\/accounts\/(.*)\/sessions$/
     nock('http://localhost:3000')
       .get('/accounts')
       .reply(200, accountsResponse)
-    // ??? nock version bump
-      // .post(/^\/accounts\/(.*)\/sessions$/)
-      .post('/accounts/abc4567/sessions')
+      .post(re_url)
       .reply(201, function (url, requestBody) {
-        // iss19 wip
+        var account_id = url.match(re_url)[1]
+        t.equal(sessionsResponse.data.relationships.account.data.id,
+                account_id,
+                'got expected account id')
         return sessionsResponse
       })
 
@@ -137,7 +138,7 @@ var makeAddOkTest = function (admin) {
       }, 'got expected sessionProperties data')
     }).then(function () {
       t.end()
-    }).catch(t.error)
+    }).catch(t.end)
   }
 }
 
@@ -148,7 +149,7 @@ var makeAddTest = function (admin) {
          'sessions.add is a function')
     t.test('admin unauthenticated', makeAddUnauthenticatedTest(admin))
     t.test('no username', makeAddNoUsernameTest(admin))
-    t.test('unconfirmed', makeAddUnconfirmedTest(admin))
+    t.skip('unconfirmed', makeAddUnconfirmedTest(admin))
     t.test('account not found', makeAddNotFoundTest(admin))
     t.test('connection error', makeAddConnectionErrorTest(admin))
     t.test('add ok', makeAddOkTest(admin))
