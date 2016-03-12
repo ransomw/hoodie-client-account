@@ -34,6 +34,8 @@ function add (state, options) {
         }
       })
     }).then(function (response) {
-      return internals.deserialise(response.body, options)
+      return internals.deserialise(response.body, {
+        include: 'account'
+      })
     })
 }
