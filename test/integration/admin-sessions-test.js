@@ -105,15 +105,15 @@ var makeAddConnectionErrorTest = function (admin) {
 
 var makeAddOkTest = function (admin) {
   return function (t) {
-    var re_url = /^\/accounts\/(.*)\/sessions$/
+    var reUrl = /^\/accounts\/(.*)\/sessions$/
     nock('http://localhost:3000')
       .get('/accounts')
       .reply(200, accountsResponse)
-      .post(re_url)
+      .post(reUrl)
       .reply(201, function (url, requestBody) {
-        var account_id = url.match(re_url)[1]
+        var accountId = url.match(reUrl)[1]
         t.equal(sessionsResponse.data.relationships.account.data.id,
-                account_id,
+                accountId,
                 'got expected account id')
         return sessionsResponse
       })
