@@ -13,7 +13,7 @@ function add (state, options) {
     return Promise.reject(new Error('options.username is required'))
   }
 
-  // TODO: use accountsFind 而不是 accountsFindAll
+  // TODO: use accountsFind instead of accountsFindAll
   //       after updating accountsFind to match admin README doc
   // return accountsFind(state, {username: options.username})
   return accountsFindAll(state)

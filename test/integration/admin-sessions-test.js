@@ -10,7 +10,6 @@ var accountsUnauthenticatedResponse = require('../fixtures/accounts-401')
 // 1. an id matching one of the user accounts in the accounts fixture
 // 2. a session id distinct from the session ids in all other fixtures
 var sessionsResponse = require('../fixtures/sessions')
-// var sessionsUnauthenticatedResponse = require('../fixtures/sessions-401')
 
 var makeAddUnauthenticatedTest = function (admin) {
   return function (t) {
